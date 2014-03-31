@@ -31,16 +31,39 @@ check_fs() {
   mnt_dev=$1
 
   ui_print " + checking file system for $mnt_point:"
-  ui_print "   device = $mnt_dev"
-  auto_umount /system 2>&1 | ui_prefix="   => unmounting: " stdout_to_ui_print
-  e2fsck -pf $mnt_dev 2>&1 | ui_prefix="   => running e2fsck: " stdout_to_ui_print
+  ui_print "   device: $mnt_dev"
+  auto_umount /system 2>&1 | ui_prefix="   unmounting: " stdout_to_ui_print
+  e2fsck -pf $mnt_dev 2>&1 | ui_prefix="   running e2fsck: " stdout_to_ui_print
 }
 
-ui_print ""
-check_fs /data
+check_vold_fs() {
+  mnt_point=$1
+  fstab_entry=$(mount | grep "$mnt_point")
+  if [ $? -eq 1 ]; then
+    ui_print "ERR: $mnt_point not mounted currently"
+    return 1
+  fi
 
-ui_print ""
+  set -- $fstab_entry # maps a white space delimited string to $1, $2, $3, ...
+  mnt_dev=$1
+  mnt_type=$5
+
+  if [ ! "$mnt_type" == "vfat" ]; then 
+    ui_print "ERR: $mnt_point has invalid file system type: '$mnt_type'"
+    return 1
+  fi
+
+  ui_print " + checking file system for $mnt_point:"
+  ui_print "   device: $mnt_dev"
+  ui_print "   running fsck_msdos: "
+  fsck_msdos -y $mnt_dev 2>&1 | ui_prefix="    " stdout_to_ui_print
+}
+
+check_fs /data
 check_fs /system
+
+check_vold_fs /storage/sdcard0
+check_vold_fs /storage/sdcard1
 
 ui_print ""
 ui_print "Finished"
