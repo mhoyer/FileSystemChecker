@@ -10,10 +10,11 @@ Build the .zip file by zipping the `META-INF` folder up into `FileSystemChecker.
 
 ```
 FileSystemChecker.zip
-└─ com
-   └─ google
-      └─ android
-         └─ update-binary
+└─ META-INF
+  └─ com
+     └─ google
+        └─ android
+           └─ update-binary
 ```
 
 1. copy the .zip to your phones storage: `adb push`
